@@ -1,0 +1,213 @@
+---
+title: "DVSG<br>Searching for `hemsworth`"
+format: revealjs
+execute:
+  echo: false
+fig-dpi: 330
+title-slide-attributes:
+    data-background-image: https://hips.hearstapps.com/hmg-prod/images/gettyimages-476343715-1525002255.jpg
+    data-background-opacity: "0.2"
+---
+
+## Intro
+
+Since 2021, OHA/SIEI has been working with the OHA color palette, dubbed `balwin`. As we update our style guide, we are explore new colors and a new color palette we'll call `hemsworth`. 
+
+## Library
+
+```{r}
+#| label: setup
+#| echo: true
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(glitr)
+library(plotwidgets)
+library(patchwork)
+library(systemfonts)
+```
+
+## Color Wheel Function
+
+```{r}
+#| label: function
+#| echo: true
+plot_color_wheel <- function(pal, name = NULL){
+  #convert hex to HSL vaues
+  df_pal <- plotwidgets::col2hsl({pal}) |> 
+    tibble::as_tibble(rownames = c("type"))
+  
+  #rename columns by their hex code for rehaping/plotting
+  names(df_pal) = c("type", {pal})
+
+  #reshape so values are wide
+  df_pal <- df_pal |> 
+    tidyr::pivot_longer(-type, names_to = "fill_color") |> 
+    tidyr::pivot_wider(names_from = "type")
+  
+  #viz  
+  v1 <- df_pal |> 
+    ggplot2::ggplot(ggplot2::aes(H, S, color = fill_color)) +
+    ggplot2::geom_blank(ggplot2::aes(0, 0)) +
+    ggplot2::geom_blank(ggplot2::aes(360, 1)) +
+    ggplot2::geom_point(size = 6) +
+    ggplot2::scale_x_continuous(limits = c(0, 360), breaks = seq(0, 360, 30)) +
+    ggplot2::scale_y_continuous(breaks = seq(0, 1, .25)) +
+    ggplot2::scale_color_identity() +
+    ggplot2::coord_polar() +
+    glitr::si_style() +
+    ggplot2::theme(axis.text = ggplot2::element_blank(),
+                   axis.title = ggplot2::element_blank())
+
+  v2 <- df_pal |> 
+    dplyr::mutate(y = 1,
+           order = dplyr::row_number()) |> 
+    ggplot2::ggplot(ggplot2::aes(order, y, fill = fill_color)) +
+    ggplot2::geom_tile(color = "white", linewidth = 2) +
+    ggplot2::scale_fill_identity() + 
+    glitr::si_style_void() +
+    ggplot2::theme(strip.text = ggplot2::element_blank())
+  
+  if(nrow(df_pal) < 6){
+    v2 <- v2 + ggplot2::geom_text(ggplot2::aes(label = fill_color), color = "white", family = "Source Sans 3")
+  }
+
+  patchwork::wrap_plots(v1, v2,
+                        nrow = 2,
+                        heights = c(2, .25)
+                        ) + 
+    patchwork::plot_annotation(title = {name},
+                               theme = glitr::si_style_void()) &
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5))
+}
+
+
+
+
+```
+
+## usaid
+
+```{r}
+plot_color_wheel(si_palettes$usaid_colors)
+```
+
+::: aside
+Note: current
+:::
+
+## siei pairs (aka balwin)
+
+```{r}
+plot_color_wheel(si_palettes$siei_pairs)
+```
+
+::: aside
+Note: current
+:::
+
+## world bank atlas
+
+```{r}
+c("#e56666", "#9e2f59", "#ed8e3f", "#509a9a", "#83b35c", "#22789d", "#ffbf24") %>% 
+plot_color_wheel()
+```
+
+::: aside
+Note: from recent report
+:::
+
+## giants
+
+```{r}
+c("#004B6B", "#00076B", "#002A6C", "#006B69", "#1C006B") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: analogous with USAID blue as primary (Adobe Color)
+:::
+
+
+## storm
+
+```{r}
+c("#1EA697", "#1E5DA6", "#1E87A5", "#1EA669", "#1E32A6") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: analogous with scooter as primary (Adobe Color)
+:::
+
+## river bandits
+
+```{r}
+c("#1E5DA6", "#351EA6", "#1E88A6", "#621EA6", "#1E32A6") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: analogous (Adobe Color)
+:::
+
+## greenjackets
+
+```{r}
+c("#5CD6A6", "#5CD6D0", "#5BB5D5", "#5CD67D", "#5C8FD6") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: analogous scooter medium as primary (Adobe Color)
+:::
+
+## grasshoppers
+
+```{r}
+c("#2F9BA3", "#2F77A3", "#4D67A2", "#2FA384", "#312FA3") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: analogous based on Bon Appetite #4D67A2 (Adobe Color)
+:::
+
+## fisher cats
+
+```{r}
+c("#54647D", "#7D5E5A", "#4E7B7E", "#7D6941", "#477D62") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: double split complimentary (Adobe Color)
+:::
+
+
+## drillers
+
+```{r}
+c("#002A6C", "#6B4800", "#2B5CAB", "#01A3EB", "#EB7E00") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: complimentary with USAID blue + custom (Adobe Color)
+:::
+
+
+## cardinals
+
+```{r}
+c("#19535F", "#0B7A75", "#D7C9AA", "#7B2D26", "#F0F3F5") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: random on coolors
+:::
+
+
+## wood ducks
+
+```{r}
+c("#19535F", "#5E3919", "#D7C9AA", "#2F6BA3", "#F0F3F5") %>%  plot_color_wheel()
+```
+
+::: aside
+Note: fiddling
+:::
