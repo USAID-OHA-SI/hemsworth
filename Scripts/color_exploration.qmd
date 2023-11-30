@@ -211,3 +211,20 @@ c("#19535F", "#5E3919", "#D7C9AA", "#2F6BA3", "#F0F3F5") %>%  plot_color_wheel()
 ::: aside
 Note: fiddling
 :::
+
+## dash
+```{r}
+c("#002A6C", "#B98ABF", "#E14BA1", "#BC3414", "#F36428",
+  "#F9C555", "#1A7E5A", "#419164", "#7EBCCB", "#5BB5D5",
+  "#688FBA", "#3B5BBE") %>% plot_color_wheel()
+```
+
+
+```{r}
+si_save("Graphics/test.svg")
+```
+
+
+
+
+
