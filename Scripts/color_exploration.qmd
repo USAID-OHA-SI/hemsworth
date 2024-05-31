@@ -26,6 +26,8 @@ library(glitr)
 library(plotwidgets)
 library(patchwork)
 library(systemfonts)
+library(scales)
+library(glue)
 ```
 
 ## Color Wheel Function
@@ -33,7 +35,7 @@ library(systemfonts)
 ```{r}
 #| label: function
 #| echo: true
-plot_color_wheel <- function(pal, name = NULL){
+plot_color_wheel <- function(pal, name = NULL, save = FALSE){
   #convert hex to HSL vaues
   df_pal <- plotwidgets::col2hsl({pal}) |> 
     tibble::as_tibble(rownames = c("type"))
@@ -44,7 +46,8 @@ plot_color_wheel <- function(pal, name = NULL){
   #reshape so values are wide
   df_pal <- df_pal |> 
     tidyr::pivot_longer(-type, names_to = "fill_color") |> 
-    tidyr::pivot_wider(names_from = "type")
+    tidyr::pivot_wider(names_from = "type") |>
+    dplyr::mutate(order = row_number())
   
   #viz  
   v1 <- df_pal |> 
@@ -52,6 +55,7 @@ plot_color_wheel <- function(pal, name = NULL){
     ggplot2::geom_blank(ggplot2::aes(0, 0)) +
     ggplot2::geom_blank(ggplot2::aes(360, 1)) +
     ggplot2::geom_point(size = 6) +
+    ggplot2::geom_text(aes(label = order), color = "white", family = "Source Sans Pro") +
     ggplot2::scale_x_continuous(limits = c(0, 360), breaks = seq(0, 360, 30)) +
     ggplot2::scale_y_continuous(breaks = seq(0, 1, .25)) +
     ggplot2::scale_color_identity() +
@@ -80,6 +84,10 @@ plot_color_wheel <- function(pal, name = NULL){
     patchwork::plot_annotation(title = {name},
                                theme = glitr::si_style_void()) &
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5))
+  
+  if(save == TRUE){
+    si_save(glue::glue("Images/coord_{name}.png"), width = 5, height = 5)
+  }
 }
 
 
@@ -214,7 +222,7 @@ Note: fiddling
 
 ## dash
 ```{r}
-c("#002A6C", "#B98ABF", "#E14BA1", "#BC3414", "#F36428",
+c("#002A6C", "#B97ABF", "#E14BA1", "#BC3414", "#F36428",
   "#F9C555", "#1A7E5A", "#419164", "#7EBCCB", "#5BB5D5",
   "#688FBA", "#3B5BBE") %>% plot_color_wheel()
 ```
@@ -225,6 +233,140 @@ si_save("Graphics/test.svg")
 ```
 
 
+## dash
+```{r}
+c(hw_midnight_blue, hw_orchid_bloom, hw_electric_indigo,
+  hw_viking, hw_sun_kissed, hw_tango, hw_lavender_haze, 
+  hw_hunter, hw_slate) %>% plot_color_wheel()
+```
 
+```{r}
+si_save("Images/hemsworth.png", width = 5, height = 6)
+```
+
+```{r}
+plot_color_wheel(si_palettes$hemsworth)
+```
+
+```{r}
+si_save("Images/siei.png", width = 5, height = 6)
+```
+```{r}
+
+map(si_palettes[2:8], plot_color_wheel)
+si_palettes[2:8] %>% 
+  set_names(names(si_palettes[2:8])) %>% 
+  walk(plot_color_wheel %>% 
+         si_save(glue("Images/coord_{.x}.png")))
+
+
+plot_color_wheel(si_palettes$old_rose, name = "old_rose", TRUE)
+
+
+map2(si_palettes[2:8],
+     names(si_palettes[2:8]),
+     ~plot_color_wheel(.x,.y, TRUE))
+
+```
+
+```{r}
+
+hw_pal <- si_palettes$hemsworth[1:8]
+
+
+gen_rand_pal <- function(start_color, pal, n = 5){
+  lim_pal <- pal[!(pal %in% start_color)]
+  
+  rand_pal <- sample(lim_pal, n - 1)
+  
+  v <- c(start_color, rand_pal)
+  
+  return(v)
+}
+
+set.seed(12)
+map(hw_pal,
+    ~gen_rand_pal(.x, hw_pal))
+
+# c("#002A6C", "#5BB5D5", "#B97ABF", "#419164", "#E14BA1")
+c("#002A6C", "#5BB5D5", "#F9C555", "#419164", "#E14BA1") 
+
+# c("#3B5BBE", "#F36428", "#B97ABF", "#F9C555", "#5BB5D5")
+c("#3B5BBE", "#E14BA1", "#F9C555", "#B97ABF", "#419164")
+
+# c("#5BB5D5", "#419164", "#3B5BBE", "#F36428", "#E14BA1")
+c("#5BB5D5", "#3B5BBE", "#F9C555", "#F36428", "#002A6C")
+
+# c("#419164", "#002A6C", "#E14BA1", "#F9C555", "#3B5BBE")
+c("#419164", "#002A6C", "#E14BA1", "#F9C555", "#3B5BBE")
+
+# c("#F9C555", "#3B5BBE", "#F36428", "#419164", "#E14BA1")
+c("#F9C555", "#3B5BBE", "#5BB5D5", "#F36428", "#419164")
+
+# c("#F36428", "#002A6C", "#3B5BBE", "#5BB5D5", "#E14BA1")
+c("#F36428", "#002A6C", "#3B5BBE", "#5BB5D5", "#F9C555")
+
+# c("#E14BA1", "#F9C555", "#F36428", "#419164", "#002A6C")
+c("#E14BA1", "#002A6C", "#B97ABF", "#419164", "#F9C555")
+
+# c("#B97ABF", "#F9C555", "#002A6C", "#3B5BBE", "#5BB5D5")
+c("#B97ABF", "#F9C555",  "#3B5BBE", "#002A6C", "#5BB5D5")
+
+
+
+
+```
+
+
+```{r}
+
+urls <- si_palettes$hemsworth %>% 
+  str_remove("#") %>%
+  tolower() %>% 
+  set_names %>%
+  map(~ glue("https://gka.github.io/palettes/#/11|d|121212,{.x}|{.x},f5f5f5|1|1"))
+
+# utils::browseURL(urls[[2]])
+# rvest::read_html(urls[[2]]) %>% rvest::html_elements('section')
+
+hw_midnight_blue_seq <- c('#121212', '#161823', '#171d34', '#162346', '#102959', '#002f6c', '#435186', '#7077a1', '#9b9fbd', '#c8c9d9', '#f5f5f5')
+
+hw_orchid_bloom_seq <- c('#121212', '#37202b', '#5e2c46', '#873763', '#b34181', '#e14ba1', '#e873b1', '#ee95c2', '#f2b6d3', '#f5d6e4', '#f5f5f5')
+
+hw_electric_indigo_seq <- c('#121212', '#1e2030', '#282d50', '#303c73', '#374b98', '#3b5bbe', '#6a77ca', '#9095d5', '#b3b4e0', '#d4d4eb', '#f5f5f5')
+
+hw_hunter_seq <- c('#121212', '#1d2921', '#274131', '#305a41', '#397552', '#419164', '#67a57f', '#8bb99c', '#aecdb9', '#d1e1d6', '#f5f5f5')
+
+hw_tango_seq <- c('#121212', '#3b2318', '#65331e', '#924322', '#c25325', '#f36428', '#fa8351', '#ffa079', '#ffbda2', '#fdd9cb', '#f5f5f5')
+
+hw_lavender_haze_seq <- c( '#121212', '#2f2830', '#4f3e51', '#705673', '#947098', '#B97ABF', '#c59fca', '#d2b4d5', '#decadf', '#e9dfea', '#f5f5f5')
+
+hw_sun_kissed_seq <- c('#121212', '#3a3120', '#66522d', '#94773b', '#c59d48', '#f9c555', '#fbce77', '#fdd897', '#fce1b6', '#faebd5', '#f5f5f5')
+
+hw_viking_seq <- c('#121212', '#232e33', '#324d58', '#406e7f', '#4e91a9', '#5bb5d5', '#80c2db', '#a0cee2', '#bddbe8', '#dae8ef', '#f5f5f5')
+
+hw_slate_seq <- c('#121212', '#212224', '#303136', '#404249', '#51545d', '#626672', '#7e818b', '#9a9ca4', '#b8b9be', '#d6d7d9', '#f5f5f5')
+
+hw_seq <- c(hw_midnight_blue_seq, hw_orchid_bloom_seq, hw_electric_indigo_seq,
+            hw_hunter_seq, hw_tango_seq, hw_lavender_haze_seq, 
+            hw_sun_kissed_seq, hw_viking_seq,hw_slate_seq)
+
+
+show_col(hw_seq, borders = "white",
+         ncol = 11)
+
+hw_midnight_blue_seq[c(3, 6, 10)]
+
+
+cont_smooth <- function(pal){
+  pal_bounds <- pal[c(3, 6, 10)]
+  
+  pal_bounds %>% 
+    str_remove("#") %>% 
+    tolower %>% 
+    paste0(collapse = ",")
+}
+
+```
 
 
